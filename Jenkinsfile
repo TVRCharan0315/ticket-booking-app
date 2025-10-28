@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         DOCKER_IMAGE   = 'ticket-booking-app:latest'
-        DOCKER_REPO    = 'tvrcharan0315/ticket-booking-app'
+        DOCKER_REPO    = 'tvrcharan/ticket-booking-app'
         // Jenkins credentials ID that stores your Docker Hub username & password/token
         DOCKERHUB_CREDENTIALS = 'dockerhub-credentials'
     }

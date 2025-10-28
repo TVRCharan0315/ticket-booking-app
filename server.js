@@ -6,7 +6,7 @@ const indexRoutes = require("./src/routes/index");
 const bookingRoutes = require("./src/routes/bookings");
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 8080;
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, "src/views")));

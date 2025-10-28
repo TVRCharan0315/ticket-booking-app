@@ -2,53 +2,53 @@ pipeline {
     agent any
 
     environment {
-        DOCKERHUB_CREDENTIALS = credentials('dockerhub')
-        IMAGE_NAME = "ticket-booking-app"
-        IMAGE_TAG = "1.0"
-        DOCKERHUB_REPO = "${DOCKERHUB_CREDENTIALS_USR}/${IMAGE_NAME}"
+        DOCKER_IMAGE   = 'ticket-booking-app:latest'
+        DOCKER_REPO    = 'tvrcharan0315/ticket-booking-app'
+        // Jenkins credentials ID that stores your Docker Hub username & password/token
+        DOCKERHUB_CREDENTIALS = 'dockerhub-credentials'
     }
 
     stages {
+
         stage('Checkout Code') {
             steps {
-                echo 'Checking out source code...'
-                git branch: 'develop', url: 'https://github.com/TVRCharan0315/ticket-booking-app.git'
+                echo '📦 Checking out source code...'
+                checkout scm
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                echo 'Building Docker image...'
-                script {
-                    sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ."
-                }
+                echo '🏗️ Building Docker image...'
+                bat 'docker build -t %DOCKER_IMAGE% .'
             }
         }
 
         stage('Test Docker Image') {
             steps {
-                echo 'Testing container...'
+                echo '🧪 Running basic container test...'
                 script {
-                    sh """
-                        docker run -d -p 8080:8080 --name ticket-test ${IMAGE_NAME}:${IMAGE_TAG}
-                        sleep 5
-                        docker ps | grep ticket-test
-                        docker stop ticket-test
-                        docker rm ticket-test
-                    """
+                    // Run a container in detached mode and then stop it
+                    bat '''
+                        docker run -d -p 3000:3000 --name temp_test %DOCKER_IMAGE%
+                        timeout /t 10
+                        docker ps -a
+                        docker stop temp_test
+                        docker rm temp_test
+                    '''
                 }
             }
         }
 
         stage('Push to Docker Hub') {
             steps {
-                echo 'Pushing image to Docker Hub...'
-                script {
-                    sh """
-                        echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin
-                        docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${DOCKERHUB_REPO}:${IMAGE_TAG}
-                        docker push ${DOCKERHUB_REPO}:${IMAGE_TAG}
-                    """
+                echo '📤 Pushing Docker image to Docker Hub...'
+                withCredentials([usernamePassword(credentialsId: "${DOCKERHUB_CREDENTIALS}", usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                    bat '''
+                        docker login -u %DOCKER_USER% -p %DOCKER_PASS%
+                        docker tag %DOCKER_IMAGE% %DOCKER_REPO%:latest
+                        docker push %DOCKER_REPO%:latest
+                    '''
                 }
             }
         }
@@ -56,7 +56,7 @@ pipeline {
 
     post {
         success {
-            echo '✅ Build and push completed successfully!'
+            echo '✅ Build, test, and push completed successfully!'
         }
         failure {
             echo '❌ Build or push failed!'

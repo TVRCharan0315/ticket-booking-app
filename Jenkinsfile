@@ -12,7 +12,7 @@ pipeline {
         stage('Checkout Code') {
             steps {
                 echo 'Checking out source code...'
-                git branch: 'develop', url: 'https://github.com/<your-username>/ticket-booking-app.git'
+                git branch: 'develop', url: 'https://github.com/TVRCharan0315/ticket-booking-app.git'
             }
         }
 
